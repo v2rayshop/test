@@ -1,0 +1,119 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+    <meta property="og:image" content="ng.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحه ثبت نام</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    
+  <div class="search-form">
+    <h1 class="color">جستو جو</h1>
+    <label for="email">کالا</label>
+    <input type="text" id="product" name="email" required="">
+    <label for="password">کشور</label>
+    <input type="text" id="country" name="password" required="">
+    <button onclick="checkLogin()">سرچ</button>
+      <p></p>
+
+  </div>
+  <div class="list-of-result" style="display: none;"></div>
+
+  </div>
+    
+  <script>
+    function checkLogin() {
+      const product = document.getElementById('product').value;
+      const country = document.getElementById('country').value;
+      if (product == "") {
+      alert("لطفا کالا را وارد کنید.");
+      return;
+      }
+      if (country == "") {
+      alert("لطفا کشور را وارد کنید.");
+      return;
+      }
+      fetch('https://my-money-plan.messagersr.workers.dev/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ product, country }),
+      })
+      .then(response => response.text())
+      .then(data => {
+      console.log('Raw Response:', data.replace(/```json|```/g, ''));
+      const text = data.replace(/```json|```/g, '');
+      const jsonData = JSON.parse(text);
+
+      // Hide the search form
+      document.querySelector('.search-form').style.display = 'none';
+
+      // Unhide the list-of-result
+      const resultDiv = document.querySelector('.list-of-result');
+      resultDiv.style.display = 'block';
+
+      // Create a styled list from the JSON data
+      const ul = document.createElement('ul');
+      ul.style.listStyleType = 'disc';
+      ul.style.paddingRight = '20px';
+      ul.style.direction = 'rtl';
+      jsonData.target_customers.forEach(item => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.style.cursor = 'pointer';
+        li.innerHTML = `<strong>دسته‌بندی:</strong> ${item.category}<br>
+            <strong>دلیل:</strong> ${item.reason}<br>
+            <strong>کلمات کلیدی جستجو:</strong> ${item.search_keywords}`;
+        li.addEventListener('click', () => {
+        fetch('https://my-money-plan.messagersr.workers.dev/', {
+          method: 'POST',
+          headers: {
+          'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ search: item.search_keywords }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Search Response:', data);
+          // Clear the previous results
+          resultDiv.innerHTML = "";
+
+          // Create a new styled list for the search results
+          const searchUl = document.createElement('ul');
+          searchUl.style.listStyleType = 'disc';
+          searchUl.style.paddingRight = '20px';
+          searchUl.style.direction = 'rtl';
+
+          data.forEach(searchItem => {
+            const searchLi = document.createElement('li');
+            searchLi.style.marginBottom = '10px';
+            searchLi.innerHTML = `<strong>عنوان:</strong> <a href="${searchItem.link}" target="_blank">${searchItem.title}</a><br>
+                <strong>توضیحات:</strong> ${searchItem.snippet}`;
+            searchUl.appendChild(searchLi);
+          });
+
+          // Append the new list to the resultDiv
+          resultDiv.appendChild(searchUl);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
+        });
+        });
+        ul.appendChild(li);
+      });
+      resultDiv.appendChild(ul);
+      })
+      .catch((error) => {
+      console.error('Error:', error);
+      alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
+      });
+    }
+  </script>
+    
+
+
+
+</body></html>
