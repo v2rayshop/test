@@ -1,119 +1,192 @@
-<html lang="en"><head>
+<html lang="en">
+<head>
   <meta charset="UTF-8">
-    <meta property="og:image" content="ng.png">
+  <meta property="og:image" content="ng.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>صفحه ثبت نام</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #555;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 
 <body>
-    
+
   <div class="search-form">
     <h1 class="color">جستو جو</h1>
     <label for="email">کالا</label>
     <input type="text" id="product" name="email" required="">
     <label for="password">کشور</label>
     <input type="text" id="country" name="password" required="">
-    <button onclick="checkLogin()">سرچ</button>
-      <p></p>
-
+    <button id="search-button" onclick="checkLogin()">سرچ</button>
+    <p></p>
   </div>
   <div class="list-of-result" style="display: none;"></div>
 
-  </div>
-    
   <script>
-    function checkLogin() {
-      const product = document.getElementById('product').value;
-      const country = document.getElementById('country').value;
-      if (product == "") {
-      alert("لطفا کالا را وارد کنید.");
-      return;
+      var isnotsearched = true;
+
+      function back() {
+        if (isnotsearched) {
+          const resultDiv = document.querySelector('.list-of-result');
+          resultDiv.classList.remove('show');
+          setTimeout(() => {
+            resultDiv.style.display = 'none';
+            resultDiv.innerHTML = '';
+            document.querySelector('.search-form').style.display = 'block';
+          }, 500);
+        } else {
+          showCategory();
+        }
       }
-      if (country == "") {
-      alert("لطفا کشور را وارد کنید.");
-      return;
+
+      function showCategory(jsonData) {
+        isnotsearched = true;
+        if (jsonData) {
+          cachedJsonData = jsonData; 
+        } else {
+          jsonData = cachedJsonData; 
+        }
+
+        const resultDiv = document.querySelector('.list-of-result');
+        resultDiv.innerHTML = '';
+        document.querySelector('.search-form').style.display = 'none';
+        resultDiv.style.display = 'block';
+        setTimeout(() => resultDiv.classList.add('show'), 10);
+
+        const backButton = document.createElement('button');
+        backButton.className = 'back';
+        backButton.textContent = 'بازگشت';
+        backButton.onclick = back;
+        resultDiv.appendChild(backButton);
+        const printButton = document.createElement('button');
+        printButton.textContent = 'Print / Export as PDF';
+        printButton.onclick = () => window.print();
+        resultDiv.appendChild(printButton);
+        const ul = document.createElement('ul');
+        ul.style.listStyleType = 'disc';
+        ul.style.paddingRight = '20px';
+        ul.style.direction = 'rtl';
+
+        jsonData.target_customers.forEach(item => {
+          const li = document.createElement('li');
+          li.style.marginBottom = '10px';
+          li.style.cursor = 'pointer';
+          li.innerHTML = `<strong>دسته‌بندی:</strong> ${item.category}<br>
+                          <strong>دلیل:</strong> ${item.reason}<br>
+                          <strong>کلمات کلیدی جستجو:</strong> ${item.search_keywords}`;
+          li.addEventListener('click', () => {
+            fetch('https://my-money-plan.messagersr.workers.dev/', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ search: item.search_keywords }),
+            })
+              .then(response => response.json())
+              .then(data => {
+                isnotsearched = false;
+                resultDiv.innerHTML = '';
+
+                const backButton = document.createElement('button');
+                backButton.className = 'back';
+                backButton.textContent = 'بازگشت';
+                backButton.onclick = back;
+                resultDiv.appendChild(backButton);
+                const printButton = document.createElement('button');
+                printButton.textContent = 'Print / Export as PDF';
+                printButton.onclick = () => window.print();
+                resultDiv.appendChild(printButton);
+                const searchUl = document.createElement('ul');
+                searchUl.style.listStyleType = 'disc';
+                searchUl.style.paddingRight = '20px';
+                searchUl.style.direction = 'rtl';
+
+                const blockedWebsites = ['amazon', 'ebay', 'craigslist'];
+
+                data.forEach(searchItem => {
+                  const isBlocked = blockedWebsites.some(site => searchItem.link.includes(site));
+                  if (isBlocked) {
+                    return; 
+                  }
+
+                  const searchLi = document.createElement('li');
+                  searchLi.style.marginBottom = '10px';
+                  searchLi.innerHTML = `<strong>عنوان:</strong> <a href="${searchItem.link}" target="_blank">${searchItem.title}</a><br>
+                      <strong>توضیحات:</strong> ${searchItem.snippet}`;
+                  searchUl.appendChild(searchLi);
+                });
+
+                resultDiv.appendChild(searchUl);
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
+              });
+          });
+
+          ul.appendChild(li);
+        });
+
+        resultDiv.appendChild(ul);
       }
-      fetch('https://my-money-plan.messagersr.workers.dev/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ product, country }),
-      })
-      .then(response => response.text())
-      .then(data => {
-      console.log('Raw Response:', data.replace(/```json|```/g, ''));
-      const text = data.replace(/```json|```/g, '');
-      const jsonData = JSON.parse(text);
 
-      // Hide the search form
-      document.querySelector('.search-form').style.display = 'none';
+      function checkLogin() {
+        const product = document.getElementById('product').value;
+        const country = document.getElementById('country').value;
+        if (product === "") {
+          alert("لطفا کالا را وارد کنید.");
+          return;
+        }
+        if (country === "") {
+          alert("لطفا کشور را وارد کنید.");
+          return;
+        }
+        
+        // Replace button text with a spinner
+        const searchButton = document.getElementById('search-button');
+        const originalText = searchButton.innerHTML;
+        searchButton.disabled = true;
+        searchButton.innerHTML = '<span class="spinner"></span>';
 
-      // Unhide the list-of-result
-      const resultDiv = document.querySelector('.list-of-result');
-      resultDiv.style.display = 'block';
-
-      // Create a styled list from the JSON data
-      const ul = document.createElement('ul');
-      ul.style.listStyleType = 'disc';
-      ul.style.paddingRight = '20px';
-      ul.style.direction = 'rtl';
-      jsonData.target_customers.forEach(item => {
-        const li = document.createElement('li');
-        li.style.marginBottom = '10px';
-        li.style.cursor = 'pointer';
-        li.innerHTML = `<strong>دسته‌بندی:</strong> ${item.category}<br>
-            <strong>دلیل:</strong> ${item.reason}<br>
-            <strong>کلمات کلیدی جستجو:</strong> ${item.search_keywords}`;
-        li.addEventListener('click', () => {
         fetch('https://my-money-plan.messagersr.workers.dev/', {
           method: 'POST',
           headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ search: item.search_keywords }),
+          body: JSON.stringify({ product, country }),
         })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Search Response:', data);
-          // Clear the previous results
-          resultDiv.innerHTML = "";
+          .then(response => response.text())
+          .then(data => {
+            // revert spinner back to original text
+            searchButton.disabled = false;
+            searchButton.innerHTML = originalText;
 
-          // Create a new styled list for the search results
-          const searchUl = document.createElement('ul');
-          searchUl.style.listStyleType = 'disc';
-          searchUl.style.paddingRight = '20px';
-          searchUl.style.direction = 'rtl';
-
-          data.forEach(searchItem => {
-            const searchLi = document.createElement('li');
-            searchLi.style.marginBottom = '10px';
-            searchLi.innerHTML = `<strong>عنوان:</strong> <a href="${searchItem.link}" target="_blank">${searchItem.title}</a><br>
-                <strong>توضیحات:</strong> ${searchItem.snippet}`;
-            searchUl.appendChild(searchLi);
+            console.log('Raw Response:', data.replace(/```json|```/g, ''));
+            const text = data.replace(/```json|```/g, '');
+            const jsonData = JSON.parse(text);
+            showCategory(jsonData);
+          })
+          .catch((error) => {
+            console.error('Error:', error);
+            alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
+            // revert spinner back to original text on error
+            searchButton.disabled = false;
+            searchButton.innerHTML = originalText;
           });
-
-          // Append the new list to the resultDiv
-          resultDiv.appendChild(searchUl);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
-        });
-        });
-        ul.appendChild(li);
-      });
-      resultDiv.appendChild(ul);
-      })
-      .catch((error) => {
-      console.error('Error:', error);
-      alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
-      });
-    }
+      }
   </script>
-    
 
-
-
-</body></html>
+</body>
+</html>

@@ -28,6 +28,9 @@
     padding: 30px;
     width: 400px;
   }
+  .list-of-result{
+    width: 50%;
+  }
 
   label {
     font-size: 1rem;
@@ -86,4 +89,16 @@ input {
     border-bottom: 1px solid #ccc;
     display: block;
     padding: 5px 0;
+  }
+  .list-of-result {
+    width: 50%;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s ease, max-height 0.5s ease;
+  }
+  
+  .list-of-result.show {
+    opacity: 1;
+    max-height: 1000px; 
   }
