@@ -37,38 +37,38 @@
           showCategory();
         }
       }
-function email(itemToFetch) { 
+function email(itemToFetch) {
   if (!itemToFetch || !itemToFetch.link) {
     console.error("Error: Item to fetch or its link is undefined.");
     alert("An error occurred: Cannot find link for email extraction.");
     return;
   }
 
-  fetch(`https://v2ray.messagersr.workers.dev/?url=${encodeURIComponent(itemToFetch.link)}`)
+  fetch("http://165.227.148.223:5000/extract-from-url", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ url: itemToFetch.link })
+  })
   .then(response => {
     if (!response.ok) {
       console.error(`HTTP error! status: ${response.status} for URL: ${itemToFetch.link}`);
       throw new Error(`Failed to fetch emails: Server responded with status ${response.status}`);
     }
-    return response.text();
+    return response.json();
   })
-  .then(data => {
-    try {
-      const jsonData = JSON.parse(data);
-      if (jsonData.emails && jsonData.emails.length > 0) {
-        alert('Found Emails: ' + jsonData.emails.join(', '));
-      } else {
-        alert('ایمیل پیدا نشد');
-        console.log('Worker response (no emails or unexpected JSON):', jsonData);
-      }
-    } catch (e) {
-      alert('ایمیل پیدا نشد' + data.substring(0, 100) + '...');
-      console.log('Worker returned non-JSON data (first 200 chars):', data.substring(0, 200));
+  .then(jsonData => {
+    if (jsonData.emails && jsonData.emails.length > 0) {
+      alert("Found Emails: " + jsonData.emails.join(", "));
+    } else {
+      alert("ایمیل پیدا نشد");
+      console.log("API response (no emails or empty):", jsonData);
     }
   })
   .catch(error => {
-    console.error('Fetch error:', error);
-    alert('An error occurred while trying to get emails: ' + error.message);
+    console.error("Fetch error:", error);
+    alert("An error occurred while trying to get emails: " + error.message);
   });
 }
       function showCategory(jsonData) {
@@ -131,7 +131,7 @@ function email(itemToFetch) {
                 searchUl.style.paddingRight = '20px';
                 searchUl.style.direction = 'rtl';
 
-                const blockedWebsites = ['amazon', 'ebay', 'craigslist'];
+                const blockedWebsites = ['amazon', 'ebay', 'craigslist','instagram','facebook'];
 
                 data.forEach(searchItem => {
                   const isBlocked = blockedWebsites.some(site => searchItem.link.includes(site));
