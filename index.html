@@ -10,7 +10,7 @@
 
 <body>
   <div class="search-form">
-    <h1 class="color">جستجو</h1>
+    <h1 class="color">جستو جو</h1>
     <label for="email">کالا</label>
     <input type="text" id="product" name="email" required="">
     <label for="password">کشور</label>
@@ -47,7 +47,7 @@
         return;
       }
 
-      fetch("http://165.227.148.223:5000/extract-from-url", {
+      fetch("https://165.227.148.223:5000/extract-from-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: itemToFetch.link })
