@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -5,11 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>صفحه ثبت نام</title>
   <link rel="stylesheet" href="styles.css">
-  
 </head>
 
 <body>
-
   <div class="search-form">
     <h1 class="color">جستو جو</h1>
     <label for="email">کالا</label>
@@ -19,197 +18,246 @@
     <button id="search-button" onclick="checkLogin()">سرچ</button>
     <p></p>
   </div>
+
   <div class="list-of-result" style="display: none;"></div>
 
   <script>
-      var isnotsearched = true;
+    let isnotsearched = true;
+    let currentSearchKeywords = "";
+    let currentPage = 1;
+    let cachedJsonData = null;
 
-      function back() {
-        if (isnotsearched) {
-          const resultDiv = document.querySelector('.list-of-result');
-          resultDiv.classList.remove('show');
-          setTimeout(() => {
-            resultDiv.style.display = 'none';
-            resultDiv.innerHTML = '';
-            document.querySelector('.search-form').style.display = 'block';
-          }, 500);
-        } else {
-          showCategory();
-        }
-      }
-function email(itemToFetch) {
-  if (!itemToFetch || !itemToFetch.link) {
-    console.error("Error: Item to fetch or its link is undefined.");
-    alert("An error occurred: Cannot find link for email extraction.");
-    return;
-  }
-
-  fetch("http://165.227.148.223:5000/extract-from-url", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ url: itemToFetch.link })
-  })
-  .then(response => {
-    if (!response.ok) {
-      console.error(`HTTP error! status: ${response.status} for URL: ${itemToFetch.link}`);
-      throw new Error(`Failed to fetch emails: Server responded with status ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(jsonData => {
-    if (jsonData.emails && jsonData.emails.length > 0) {
-      alert("Found Emails: " + jsonData.emails.join(", "));
-    } else {
-      alert("ایمیل پیدا نشد");
-      console.log("API response (no emails or empty):", jsonData);
-    }
-  })
-  .catch(error => {
-    console.error("Fetch error:", error);
-    alert("An error occurred while trying to get emails: " + error.message);
-  });
-}
-      function showCategory(jsonData) {
-        isnotsearched = true;
-        if (jsonData) {
-          cachedJsonData = jsonData; 
-        } else {
-          jsonData = cachedJsonData; 
-        }
-
+    function back() {
+      if (isnotsearched) {
         const resultDiv = document.querySelector('.list-of-result');
-        resultDiv.innerHTML = '';
-        document.querySelector('.search-form').style.display = 'none';
-        resultDiv.style.display = 'block';
-        setTimeout(() => resultDiv.classList.add('show'), 10);
+        resultDiv.classList.remove('show');
+        setTimeout(() => {
+          resultDiv.style.display = 'none';
+          resultDiv.innerHTML = '';
+          document.querySelector('.search-form').style.display = 'block';
+        }, 500);
+      } else {
+        showCategory();
+      }
+    }
 
-        const backButton = document.createElement('button');
-        backButton.className = 'back';
-        backButton.textContent = 'بازگشت';
-        backButton.onclick = back;
-        resultDiv.appendChild(backButton);
-        const printButton = document.createElement('button');
-        printButton.textContent = 'Print / Export as PDF';
-        printButton.onclick = () => window.print();
-        resultDiv.appendChild(printButton);
-        const ul = document.createElement('ul');
-        ul.style.listStyleType = 'disc';
-        ul.style.paddingRight = '20px';
-        ul.style.direction = 'rtl';
+    function email(itemToFetch) {
+      if (!itemToFetch || !itemToFetch.link) {
+        alert("لینک نامعتبر برای استخراج ایمیل");
+        return;
+      }
 
-        jsonData.target_customers.forEach(item => {
-          const li = document.createElement('li');
-          li.style.marginBottom = '10px';
-          li.style.cursor = 'pointer';
-          li.innerHTML = `<strong>دسته‌بندی:</strong> ${item.category}<br>
-                          <strong>دلیل:</strong> ${item.reason}<br>
-                          <strong>کلمات کلیدی جستجو:</strong> ${item.search_keywords}`;
-          li.addEventListener('click', () => {
-            fetch('https://my-money-plan.messagersr.workers.dev/', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ search: item.search_keywords }),
-            })
-              .then(response => response.json())
-              .then(data => {
-                isnotsearched = false;
-                resultDiv.innerHTML = '';
+      fetch("http://165.227.148.223:5000/extract-from-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: itemToFetch.link })
+      })
+      .then(response => {
+        if (!response.ok) throw new Error(`خطا: ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        if (data.emails && data.emails.length > 0) {
+          alert("ایمیل‌ها: " + data.emails.join(", "));
+        } else {
+          alert("ایمیلی پیدا نشد.");
+        }
+      })
+      .catch(error => alert("خطا در استخراج ایمیل: " + error.message));
+    }
 
-                const backButton = document.createElement('button');
-                backButton.className = 'back';
-                backButton.textContent = 'بازگشت';
-                backButton.onclick = back;
-                resultDiv.appendChild(backButton);
-                const printButton = document.createElement('button');
-                printButton.textContent = 'Print / Export as PDF';
-                printButton.onclick = () => window.print();
-                resultDiv.appendChild(printButton);
-                const searchUl = document.createElement('ul');
-                searchUl.style.listStyleType = 'disc';
-                searchUl.style.paddingRight = '20px';
-                searchUl.style.direction = 'rtl';
+    function showCategory(jsonData) {
+      isnotsearched = true;
+      if (jsonData) cachedJsonData = jsonData;
+      else jsonData = cachedJsonData;
 
-                const blockedWebsites = ['amazon', 'ebay', 'craigslist','instagram','facebook'];
+      const resultDiv = document.querySelector('.list-of-result');
+      resultDiv.innerHTML = '';
+      document.querySelector('.search-form').style.display = 'none';
+      resultDiv.style.display = 'block';
+      setTimeout(() => resultDiv.classList.add('show'), 10);
 
-                data.forEach(searchItem => {
-                  const isBlocked = blockedWebsites.some(site => searchItem.link.includes(site));
-                  if (isBlocked) {
-                    return; 
-                  }
+      const backButton = document.createElement('button');
+      backButton.className = 'back';
+      backButton.textContent = 'بازگشت';
+      backButton.onclick = back;
+      resultDiv.appendChild(backButton);
 
-                  const searchLi = document.createElement('li');
-                  searchLi.style.marginBottom = '10px';
-                  searchLi.innerHTML = `<strong>عنوان:</strong> <a href="${searchItem.link}" target="_blank">${searchItem.title}</a><br>
-                      <strong>توضیحات:</strong> ${searchItem.snippet}`;
-                  searchUl.appendChild(searchLi);
-                  const email = document.createElement('button');
-                  email.className = 'email';
-                  email.textContent = 'ایمیل';
-                  email.onclick = () => window.email(searchItem);
-                  searchLi.appendChild(email);
-                });
+      const printButton = document.createElement('button');
+      printButton.textContent = 'Print / Export as PDF';
+      printButton.onclick = () => window.print();
+      resultDiv.appendChild(printButton);
 
-                resultDiv.appendChild(searchUl);
-              })
-              .catch(error => {
-                console.error('Error:', error);
-                alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
-              });
-          });
+      const ul = document.createElement('ul');
+      ul.style.listStyleType = 'disc';
+      ul.style.paddingRight = '20px';
+      ul.style.direction = 'rtl';
 
-          ul.appendChild(li);
+      jsonData.target_customers.forEach(item => {
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.style.cursor = 'pointer';
+        li.innerHTML = `<strong>دسته‌بندی:</strong> ${item.category}<br>
+                        <strong>دلیل:</strong> ${item.reason}<br>
+                        <strong>کلمات کلیدی جستجو:</strong> ${item.search_keywords}`;
+        li.addEventListener('click', () => {
+          currentSearchKeywords = item.search_keywords;
+          currentPage = 1;
+          fetchPage(resultDiv);
         });
+        ul.appendChild(li);
+      });
 
-        resultDiv.appendChild(ul);
+      resultDiv.appendChild(ul);
+    }
+
+    function renderSearchResults(resultDiv, data) {
+      resultDiv.innerHTML = '';
+
+      const backButton = document.createElement('button');
+      backButton.className = 'back';
+      backButton.textContent = 'بازگشت';
+      backButton.onclick = back;
+      resultDiv.appendChild(backButton);
+
+      const printButton = document.createElement('button');
+      printButton.textContent = 'Print / Export as PDF';
+      printButton.onclick = () => window.print();
+      resultDiv.appendChild(printButton);
+
+      const searchUl = document.createElement('ul');
+      searchUl.style.listStyleType = 'disc';
+      searchUl.style.paddingRight = '20px';
+      searchUl.style.direction = 'rtl';
+
+      const blockedWebsites = ['amazon', 'ebay', 'craigslist', 'instagram', 'facebook'];
+
+      data.forEach(item => {
+        if (blockedWebsites.some(site => item.link.includes(site))) return;
+
+        const li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        li.innerHTML = `<strong>عنوان:</strong> <a href="${item.link}" target="_blank">${item.title}</a><br>
+                        <strong>توضیحات:</strong> ${item.snippet}`;
+        const emailBtn = document.createElement('button');
+        emailBtn.className = 'email';
+        emailBtn.textContent = 'ایمیل';
+        emailBtn.onclick = () => email(item);
+        li.appendChild(emailBtn);
+        searchUl.appendChild(li);
+      });
+
+      resultDiv.appendChild(searchUl);
+      createPagination(resultDiv, 5); // adjust 5 to dynamic total pages if available
+    }
+
+    function fetchPage(resultDiv) {
+      fetch('https://my-money-plan.messagersr.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ search: currentSearchKeywords, page: currentPage }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        renderSearchResults(resultDiv, data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در دریافت اطلاعات.');
+      });
+    }
+
+    function createPagination(resultDiv, totalPages = 5) {
+      const paginationContainer = document.createElement('div');
+      paginationContainer.className = 'pagination';
+
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = '◀';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => {
+        currentPage--;
+        fetchPage(resultDiv);
+      };
+      paginationContainer.appendChild(prevBtn);
+
+      let maxVisible = 5;
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
       }
 
-      function checkLogin() {
-        const product = document.getElementById('product').value;
-        const country = document.getElementById('country').value;
-        if (product === "") {
-          alert("لطفا کالا را وارد کنید.");
-          return;
-        }
-        if (country === "") {
-          alert("لطفا کشور را وارد کنید.");
-          return;
-        }
-        
-        // Replace button text with a spinner
-        const searchButton = document.getElementById('search-button');
-        const originalText = searchButton.innerHTML;
-        searchButton.disabled = true;
-        searchButton.innerHTML = '<span class="spinner"></span>';
-
-        fetch('https://my-money-plan.messagersr.workers.dev/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ product, country }),
-        })
-          .then(response => response.text())
-          .then(data => {
-            // revert spinner back to original text
-            searchButton.disabled = false;
-            searchButton.innerHTML = originalText;
-
-            console.log('Raw Response:', data.replace(/```json|```/g, ''));
-            const text = data.replace(/```json|```/g, '');
-            const jsonData = JSON.parse(text);
-            showCategory(jsonData);
-          })
-          .catch((error) => {
-            console.error('Error:', error);
-            alert('مشکلی در ارسال درخواست وجود دارد. لطفا دوباره تلاش کنید.');
-            // revert spinner back to original text on error
-            searchButton.disabled = false;
-            searchButton.innerHTML = originalText;
-          });
+      if (startPage > 1) {
+        addPageButton(paginationContainer, 1, resultDiv);
+        if (startPage > 2) paginationContainer.appendChild(document.createTextNode("..."));
       }
+
+      for (let i = startPage; i <= endPage; i++) {
+        addPageButton(paginationContainer, i, resultDiv);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) paginationContainer.appendChild(document.createTextNode("..."));
+        addPageButton(paginationContainer, totalPages, resultDiv);
+      }
+
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = '▶';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => {
+        currentPage++;
+        fetchPage(resultDiv);
+      };
+      paginationContainer.appendChild(nextBtn);
+
+      resultDiv.appendChild(paginationContainer);
+    }
+
+    function addPageButton(container, page, resultDiv) {
+      const pageBtn = document.createElement('button');
+      pageBtn.textContent = page;
+      if (page === currentPage) {
+        pageBtn.classList.add('active-page');
+        pageBtn.disabled = true;
+      }
+      pageBtn.onclick = () => {
+        currentPage = page;
+        fetchPage(resultDiv);
+      };
+      container.appendChild(pageBtn);
+    }
+
+    function checkLogin() {
+      const product = document.getElementById('product').value.trim();
+      const country = document.getElementById('country').value.trim();
+      const searchButton = document.getElementById('search-button');
+      const originalText = searchButton.innerHTML;
+
+      if (!product) return alert("لطفا کالا را وارد کنید.");
+      if (!country) return alert("لطفا کشور را وارد کنید.");
+
+      searchButton.disabled = true;
+      searchButton.innerHTML = '<span class="spinner"></span>';
+
+      fetch('https://my-money-plan.messagersr.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product, country }),
+      })
+      .then(response => response.text())
+      .then(text => {
+        searchButton.disabled = false;
+        searchButton.innerHTML = originalText;
+        const cleanText = text.replace(/```json|```/g, '');
+        const jsonData = JSON.parse(cleanText);
+        showCategory(jsonData);
+      })
+      .catch(error => {
+        searchButton.disabled = false;
+        searchButton.innerHTML = originalText;
+        alert("خطایی رخ داده است: " + error.message);
+      });
+    }
   </script>
-
 </body>
 </html>

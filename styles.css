@@ -126,3 +126,39 @@ input {
         overflow-y: auto; /* Allow vertical scrolling if needed */
     }
 }
+    .pagination {
+      direction: ltr;
+      margin-top: 20px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      width: 100%;
+      display: flex;
+    }
+
+    .pagination button {
+      padding: 6px 12px;
+      margin: 2px;
+      border: 1px solid #ccc;
+      background-color: white;
+      color: #0073e6;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: 0.3s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background-color: #f1f1f1;
+    }
+
+    .pagination button:disabled {
+      color: #999;
+      border-color: #eee;
+      cursor: default;
+    }
+
+    .pagination .active-page {
+      background-color: #0073e6;
+      color: white;
+      border-color: #0073e6;
+    }
