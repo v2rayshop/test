@@ -66,6 +66,7 @@ input {
     width: 100%;
     transition: all 0.3s ease-in-out;
     margin-top: 5px;
+
   }
 
   button:hover {
@@ -184,7 +185,7 @@ input {
       color:transparent;
       display: flex;
       background-image: url("back.png");
-      width: 7%;
+      width: 130px;
       background-repeat: no-repeat;
       background-position: center;
       align-items: center;
