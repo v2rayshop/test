@@ -162,3 +162,40 @@ input {
       color: white;
       border-color: #0073e6;
     }
+    .email {
+      background-color: transparent;
+      display: flex;
+      width:150px;
+      justify-content: center;
+      align-items: center;
+      background-image: url("email.webp");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      color: transparent;
+      transition: box-shadow 0.3s, background-color 0.3s;
+    }
+    .email:hover {
+      box-shadow: 0 0 8px #0075c4;
+      background-color: transparent;
+    }
+    .back{
+      background-color: transparent;
+      color:transparent;
+      display: flex;
+      background-image: url("back.png");
+      width: 7%;
+      background-repeat: no-repeat;
+      background-position: center;
+      align-items: center;
+      justify-content: center;
+      background-size: contain;
+      transition: box-shadow 0.3s, background-color 0.3s;
+    }
+    .back:hover{
+      box-shadow: 0 0 10px #e79427;
+      background-color: transparent;
+    }
+    li {
+      display:grid;
+    }
