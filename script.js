@@ -26,7 +26,7 @@
         return;
       }
 
-      fetch("https://Ai.choopon.site/extract-from-url", {
+      fetch("https://ai.roha-ai.ir/extract-from-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: itemToFetch.link })
