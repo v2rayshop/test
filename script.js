@@ -17,7 +17,7 @@
       }
     }
 
-    function email(itemToFetch, button) {
+function email(itemToFetch, button) {
   const originalTextt = button.innerHTML;
   button.disabled = true;
   button.innerHTML = '<span class="spinner"></span>';
@@ -37,13 +37,14 @@
   .then(response => {
     if (!response.ok) throw new Error(`خطا: ${response.status}`);
 
-    // get filename from content-disposition header if possible
+    // --- Extract filename from Content-Disposition header ---
     const disposition = response.headers.get('Content-Disposition');
-    let filename = "extracted_data.xlsx";
-    if (disposition && disposition.indexOf('attachment') !== -1) {
-      const filenameRegex = /filename="?([^"]+)"?/;
-      const matches = filenameRegex.exec(disposition);
-      if (matches != null && matches[1]) filename = matches[1];
+    let filename = "downloaded_file"; // fallback default
+    if (disposition && disposition.includes('attachment')) {
+      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (match && match[1]) {
+        filename = match[1].replace(/['"]/g, '');
+      }
     }
 
     return response.blob().then(blob => ({ blob, filename }));
@@ -55,7 +56,7 @@
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = filename;
+    a.download = filename; // not hardcoded!
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -144,7 +145,7 @@
                         <strong>توضیحات:</strong> ${item.snippet}`;
         const emailBtn = document.createElement('button');
         emailBtn.className = 'email';
-        emailBtn.textContent = 'ایمیل';
+        emailBtn.textContent = 'extract all info';
         emailBtn.onclick = (e) => email(item, e.target);
         li.appendChild(emailBtn);
         searchUl.appendChild(li);

@@ -169,11 +169,11 @@ input {
       width:150px;
       justify-content: center;
       align-items: center;
-      background-image: url("email.webp");
+      background-image: url("info.png");
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      color: transparent;
+      color: white;
       transition: box-shadow 0.3s, background-color 0.3s;
     }
     .email:hover {
