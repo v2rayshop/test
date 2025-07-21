@@ -17,7 +17,10 @@
       }
     }
 
-    function email(itemToFetch) {
+    function email(itemToFetch, button) {
+      const originalTextt = email.innerHTML;
+      button.disabled = true;
+      button.innerHTML = '<span class="spinner"></span>';
       if (!itemToFetch || !itemToFetch.link) {
         alert("لینک نامعتبر برای استخراج ایمیل");
         return;
@@ -33,13 +36,19 @@
         return response.json();
       })
       .then(data => {
+        button.disabled = false;
+        button.innerHTML = originalTextt;
         if (data.emails && data.emails.length > 0) {
           alert("ایمیل‌ها: " + data.emails.join(", "));
         } else {
           alert("ایمیلی پیدا نشد.");
         }
       })
-      .catch(error => alert("خطا در استخراج ایمیل: " + error.message));
+      .catch(error => {
+        alert("خطا در استخراج ایمیل: " + error.message)
+        button.disabled = false;
+        button.innerHTML = originalTextt;
+      });
     }
 
     function showCategory(jsonData) {
@@ -119,7 +128,7 @@
         const emailBtn = document.createElement('button');
         emailBtn.className = 'email';
         emailBtn.textContent = 'ایمیل';
-        emailBtn.onclick = () => email(item);
+        emailBtn.onclick = (e) => email(item, e.target);
         li.appendChild(emailBtn);
         searchUl.appendChild(li);
       });
