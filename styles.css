@@ -180,6 +180,13 @@ input {
       box-shadow: 0 0 8px #0075c4;
       background-color: transparent;
     }
+    .email:disabled {
+  background-image: none;
+  color: inherit;
+}
+.email:disabled .spinner {
+  display: inline-block;
+}
     .back{
       background-color: transparent;
       color:transparent;
