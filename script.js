@@ -18,38 +18,55 @@
     }
 
     function email(itemToFetch, button) {
-      const originalTextt = email.innerHTML;
-      button.disabled = true;
-      button.innerHTML = '<span class="spinner"></span>';
-      if (!itemToFetch || !itemToFetch.link) {
-        alert("لینک نامعتبر برای استخراج ایمیل");
-        return;
-      }
+  const originalTextt = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner"></span>';
 
-      fetch("https://ai.roha-ai.ir/extract-from-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: itemToFetch.link })
-      })
-      .then(response => {
-        if (!response.ok) throw new Error(`خطا: ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        button.disabled = false;
-        button.innerHTML = originalTextt;
-        if (data.emails && data.emails.length > 0) {
-          alert("ایمیل‌ها: " + data.emails.join(", "));
-        } else {
-          alert("ایمیلی پیدا نشد.");
-        }
-      })
-      .catch(error => {
-        alert("خطا در استخراج ایمیل: " + error.message)
-        button.disabled = false;
-        button.innerHTML = originalTextt;
-      });
+  if (!itemToFetch || !itemToFetch.link) {
+    alert("لینک نامعتبر برای استخراج ایمیل");
+    button.disabled = false;
+    button.innerHTML = originalTextt;
+    return;
+  }
+
+  fetch("https://ai.roha-ai.ir/extract-full", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url: itemToFetch.link })
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`خطا: ${response.status}`);
+
+    // get filename from content-disposition header if possible
+    const disposition = response.headers.get('Content-Disposition');
+    let filename = "extracted_data.xlsx";
+    if (disposition && disposition.indexOf('attachment') !== -1) {
+      const filenameRegex = /filename="?([^"]+)"?/;
+      const matches = filenameRegex.exec(disposition);
+      if (matches != null && matches[1]) filename = matches[1];
     }
+
+    return response.blob().then(blob => ({ blob, filename }));
+  })
+  .then(({ blob, filename }) => {
+    button.disabled = false;
+    button.innerHTML = originalTextt;
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  })
+  .catch(error => {
+    alert("خطا در استخراج ایمیل: " + error.message);
+    button.disabled = false;
+    button.innerHTML = originalTextt;
+  });
+}
 
     function showCategory(jsonData) {
       isnotsearched = true;
