@@ -291,3 +291,8 @@ function email(itemToFetch, button) {
         alert("خطایی رخ داده است: " + error.message);
       });
     }
+
+    document.querySelector('.login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      checkLogin();
+    });
