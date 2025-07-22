@@ -1,12 +1,39 @@
-  let isnotsearched = true;
+let isnotsearched = true;
     let currentSearchKeywords = "";
     let currentPage = 1;
     let cachedJsonData = null;
+
+    function switchStylesheet(showList) {
+      const head = document.head;
+      let styleLink = document.querySelector('link[rel="stylesheet"][href="style.css"]');
+      let stylesLink = document.querySelector('link[rel="stylesheet"][href="styles.css"]');
+
+      if (showList) {
+        // Show: use style.css, remove styles.css
+        if (!styleLink) {
+          styleLink = document.createElement('link');
+          styleLink.rel = 'stylesheet';
+          styleLink.href = 'style.css';
+          head.appendChild(styleLink);
+        }
+        if (stylesLink) stylesLink.remove();
+      } else {
+        // Hide: use styles.css, remove style.css
+        if (!stylesLink) {
+          stylesLink = document.createElement('link');
+          stylesLink.rel = 'stylesheet';
+          stylesLink.href = 'styles.css';
+          head.appendChild(stylesLink);
+        }
+        if (styleLink) styleLink.remove();
+      }
+    }
 
     function back() {
       if (isnotsearched) {
         const resultDiv = document.querySelector('.list-of-result');
         resultDiv.classList.remove('show');
+        switchStylesheet(false); // Use styles.css when hidden
         setTimeout(() => {
           resultDiv.style.display = 'none';
           resultDiv.innerHTML = '';
@@ -78,6 +105,7 @@ function email(itemToFetch, button) {
       resultDiv.innerHTML = '';
       document.querySelector('.search-form').style.display = 'none';
       resultDiv.style.display = 'block';
+      switchStylesheet(true); // Use style.css when shown
       setTimeout(() => resultDiv.classList.add('show'), 10);
 
       const backButton = document.createElement('button');
@@ -116,7 +144,8 @@ function email(itemToFetch, button) {
 
     function renderSearchResults(resultDiv, data) {
       resultDiv.innerHTML = '';
- 
+      switchStylesheet(true); // Use style.css when shown
+
       const backButton = document.createElement('button');
       backButton.className = 'back';
       backButton.textContent = 'بازگشت';
