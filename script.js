@@ -33,6 +33,7 @@ let isnotsearched = true;
       if (isnotsearched) {
         const resultDiv = document.querySelector('.list-of-result');
         resultDiv.classList.remove('show');
+        location.reload();
         switchStylesheet(false); // Use styles.css when hidden
         setTimeout(() => {
           resultDiv.style.display = 'none';
@@ -80,6 +81,10 @@ function email(itemToFetch, button) {
     button.disabled = false;
     button.innerHTML = originalTextt;
 
+    // Store the blob for the send email function
+    itemToFetch.blob = blob;
+    itemToFetch.filename = filename;
+
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -94,6 +99,99 @@ function email(itemToFetch, button) {
     button.disabled = false;
     button.innerHTML = originalTextt;
   });
+}
+
+function sendEmailClickHandler(item) {
+  if (!item.blob) {
+    alert("لطفا ایتدا اطلاعات را دریافت کنید.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    const emails = [];
+    const range = XLSX.utils.decode_range(worksheet['!ref']);
+    // Iterate over rows, starting from the second row (index 1)
+    for (let R = 1; R <= range.e.r; ++R) {
+        const cellAddress = XLSX.utils.encode_cell({r: R, c: 0}); // Column A
+        const cell = worksheet[cellAddress];
+        if (cell && cell.v && String(cell.v).trim() !== '') {
+            emails.push(cell.v);
+        }
+    }
+
+    if (emails.length === 0) {
+      alert("No emails found in the file.");
+    } else if (emails.length === 1) {
+      openGmail(emails[0]);
+    } else {
+      showEmailPopup(emails);
+    }
+  };
+  reader.onerror = function(e) {
+      alert("Failed to read the file.");
+      console.error("FileReader error:", e);
+  }
+  reader.readAsArrayBuffer(item.blob);
+}
+
+function openGmail(email) {
+    window.location.href = `mailto:${email}`;
+}
+
+function showEmailPopup(emails) {
+    const existingPopup = document.getElementById('email-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+
+    const popup = document.createElement('div');
+    popup.id = 'email-popup';
+    popup.style.position = 'fixed';
+    popup.style.top = '50%';
+    popup.style.left = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
+    popup.style.backgroundColor = 'white';
+    popup.style.padding = '20px';
+    popup.style.border = '1px solid black';
+    popup.style.zIndex = '1000';
+    popup.style.textAlign = 'center';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Choose an email to send:';
+    popup.appendChild(title);
+
+    const emailList = document.createElement('ul');
+    emailList.style.listStyle = 'none';
+    emailList.style.padding = '0';
+
+    emails.forEach(email => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.textContent = email;
+        button.onclick = () => {
+            openGmail(email);
+            popup.remove();
+        };
+        button.style.margin = '5px';
+        li.appendChild(button);
+        emailList.appendChild(li);
+    });
+
+    popup.appendChild(emailList);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.onclick = () => popup.remove();
+    closeBtn.style.marginTop = '10px';
+    popup.appendChild(closeBtn);
+
+    document.body.appendChild(popup);
 }
 
     function showCategory(jsonData) {
@@ -177,6 +275,12 @@ function email(itemToFetch, button) {
         emailBtn.textContent = 'extract all info';
         emailBtn.onclick = (e) => email(item, e.target);
         li.appendChild(emailBtn);
+        //searchUl.appendChild(li);
+        const sendemail = document.createElement('button');
+        sendemail.className = 'email';
+        sendemail.textContent = 'send email';
+        sendemail.onclick = () => sendEmailClickHandler(item);
+        li.appendChild(sendemail);
         searchUl.appendChild(li);
       });
 
