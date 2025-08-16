@@ -158,9 +158,13 @@ function showEmailPopup(emails) {
     popup.style.transform = 'translate(-50%, -50%)';
     popup.style.backgroundColor = 'white';
     popup.style.padding = '20px';
-    popup.style.border = '1px solid black';
+    popup.style.border = '1px solid #ccc';
+    popup.style.borderRadius = '8px';
+    popup.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
     popup.style.zIndex = '1000';
     popup.style.textAlign = 'center';
+    popup.style.width = '90%';
+    popup.style.maxWidth = '400px';
 
     const title = document.createElement('h3');
     title.textContent = 'Choose an email to send:';
@@ -179,6 +183,7 @@ function showEmailPopup(emails) {
             popup.remove();
         };
         button.style.margin = '5px';
+        button.style.width = '100%';
         li.appendChild(button);
         emailList.appendChild(li);
     });
@@ -189,6 +194,7 @@ function showEmailPopup(emails) {
     closeBtn.textContent = 'Close';
     closeBtn.onclick = () => popup.remove();
     closeBtn.style.marginTop = '10px';
+    closeBtn.style.backgroundColor = '#f44336';
     popup.appendChild(closeBtn);
 
     document.body.appendChild(popup);
@@ -206,16 +212,22 @@ function showEmailPopup(emails) {
       switchStylesheet(true); // Use style.css when shown
       setTimeout(() => resultDiv.classList.add('show'), 10);
 
+      const header = document.createElement('div');
+      header.className = 'list-header';
+
       const backButton = document.createElement('button');
       backButton.className = 'back';
-      backButton.textContent = 'بازگشت';
+      backButton.innerHTML = '<i class="fas fa-arrow-left"></i> بازگشت';
       backButton.onclick = back;
-      resultDiv.appendChild(backButton);
+      header.appendChild(backButton);
 
       const printButton = document.createElement('button');
-      printButton.textContent = 'Print / Export as PDF';
+      printButton.className = 'print-btn';
+      printButton.innerHTML = '<i class="fas fa-print"></i> Print / Export as PDF';
       printButton.onclick = () => window.print();
-      resultDiv.appendChild(printButton);
+      header.appendChild(printButton);
+
+      resultDiv.appendChild(header);
 
       const ul = document.createElement('ul');
       ul.style.listStyleType = 'disc';
@@ -244,20 +256,26 @@ function showEmailPopup(emails) {
       resultDiv.innerHTML = '';
       switchStylesheet(true); // Use style.css when shown
 
+      const header = document.createElement('div');
+      header.className = 'list-header';
+
       const backButton = document.createElement('button');
       backButton.className = 'back';
-      backButton.textContent = 'بازگشت';
+      backButton.innerHTML = '<i class="fas fa-arrow-left"></i> بازگشت';
       backButton.onclick = back;
-      resultDiv.appendChild(backButton);
+      header.appendChild(backButton);
 
       const printButton = document.createElement('button');
-      printButton.textContent = 'Print / Export as PDF';
+      printButton.className = 'print-btn';
+      printButton.innerHTML = '<i class="fas fa-print"></i> Print / Export as PDF';
       printButton.onclick = () => window.print();
-      resultDiv.appendChild(printButton);
+      header.appendChild(printButton);
+      
+      resultDiv.appendChild(header);
 
       const searchUl = document.createElement('ul');
-      searchUl.style.listStyleType = 'disc';
-      searchUl.style.paddingRight = '20px';
+      searchUl.style.listStyleType = 'none';
+      searchUl.style.paddingRight = '0';
       searchUl.style.direction = 'rtl';
 
       const blockedWebsites = ['amazon', 'ebay', 'craigslist', 'instagram', 'facebook','wikipedia'];
@@ -268,19 +286,27 @@ function showEmailPopup(emails) {
 
         const li = document.createElement('li');
         li.style.marginBottom = '10px';
-        li.innerHTML = `<strong>عنوان:</strong> <a href="${item.link}" target="_blank">${item.title}</a><br>
-                        <strong>توضیحات:</strong> ${item.snippet}`;
+        li.innerHTML = `<div class="item-content">
+                          <h4><a href="${item.link}" target="_blank">${item.title}</a></h4>
+                          <p>${item.snippet}</p>
+                        </div>`;
+        
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'button-group';
+        
         const emailBtn = document.createElement('button');
         emailBtn.className = 'email';
-        emailBtn.textContent = 'extract all info';
+        emailBtn.innerHTML = '<i class="fas fa-info-circle"></i> Extract All Info';
         emailBtn.onclick = (e) => email(item, e.target);
-        li.appendChild(emailBtn);
-        //searchUl.appendChild(li);
+        buttonGroup.appendChild(emailBtn);
+
         const sendemail = document.createElement('button');
-        sendemail.className = 'email';
-        sendemail.textContent = 'send email';
+        sendemail.className = 'send-email';
+        sendemail.innerHTML = '<i class="fas fa-paper-plane"></i> Send Email';
         sendemail.onclick = () => sendEmailClickHandler(item);
-        li.appendChild(sendemail);
+        buttonGroup.appendChild(sendemail);
+
+        li.appendChild(buttonGroup);
         searchUl.appendChild(li);
       });
 
